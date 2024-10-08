@@ -2,9 +2,12 @@
   "name": "quiz_learning_without_borders_nodejs",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": "14.x"
+  },
   "type": "module",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
