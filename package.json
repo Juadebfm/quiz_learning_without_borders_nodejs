@@ -2,9 +2,6 @@
   "name": "quiz_learning_without_borders_nodejs",
   "version": "1.0.0",
   "main": "index.js",
-  "engines": {
-    "node": "20.x"
-  },
   "type": "module",
   "scripts": {
     "start": "node index.js"
