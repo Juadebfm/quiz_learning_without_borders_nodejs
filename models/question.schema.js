@@ -28,6 +28,26 @@ const questionSchema = new Schema({
     min: [0, "Correct answer index must be between 0 and 3"],
     max: [3, "Correct answer index must be between 0 and 3"],
   },
+  channel: {
+    type: String,
+    required: [true, "Channel is required"],
+    trim: true,
+  },
+  course: {
+    type: String,
+    required: [true, "Course is required"],
+    trim: true,
+  },
+  lecture: {
+    type: String,
+    required: [true, "Lecture is required"],
+    trim: true,
+  },
+  topic: {
+    type: String,
+    required: [true, "Topic is required"],
+    trim: true,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
