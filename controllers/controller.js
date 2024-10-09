@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { formatResponse } from "../utils/responseFormatter.js";
 
+// Get All Questions
 export async function getQuestions(req, res, next) {
   try {
     const questions = await Questions.find();
@@ -13,6 +14,7 @@ export async function getQuestions(req, res, next) {
   }
 }
 
+// Add A Question
 export async function insertQuestions(req, res, next) {
   try {
     const question = await Questions.create(req.body);
@@ -22,6 +24,7 @@ export async function insertQuestions(req, res, next) {
   }
 }
 
+// Delete A Question
 export async function deleteQuestions(req, res, next) {
   try {
     const { id } = req.params;
@@ -35,6 +38,7 @@ export async function deleteQuestions(req, res, next) {
   }
 }
 
+// Store Result
 export async function storeResults(req, res, next) {
   try {
     const { username, result, attempts, points, achieved } = req.body;
