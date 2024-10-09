@@ -47,6 +47,9 @@ const resultSchema = new Schema({
     required: [true, "Achievement status is required"],
     trim: true,
   },
+  passedQuestions: { type: Number, required: true },
+  totalQuestions: { type: Number, required: true },
+  percentageScore: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
