@@ -22,6 +22,7 @@ export async function listAllQuestions(req, res, next) {
     );
 
     const structuredQuestions = questions.map((q) => ({
+      id: q._id, // Include the question's ID
       question: q.question,
       correctAnswer: q.answers[q.correctAnswerIndex],
       channel: q.channel,
@@ -41,7 +42,46 @@ export async function listAllQuestions(req, res, next) {
   }
 }
 
-// New function to search questions with filters
+// Get a Question by ID
+export async function getQuestionById(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    // Find the question by its ID
+    const question = await Questions.findById(id).select(
+      "question answers correctAnswerIndex channel course lecture topic"
+    );
+
+    // If the question is not found
+    if (!question) {
+      return formatResponse(res, 404, "Question not found");
+    }
+
+    // Structure the response
+    const structuredQuestion = {
+      id: question._id,
+      question: question.question,
+      correctAnswer: question.answers[question.correctAnswerIndex],
+      correctAnswerIndex: question.correctAnswerIndex,
+      channel: question.channel,
+      course: question.course,
+      lecture: question.lecture,
+      topic: question.topic,
+    };
+
+    // Send the formatted response
+    formatResponse(
+      res,
+      200,
+      "Question retrieved successfully",
+      structuredQuestion
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Search questions with filters
 export async function searchQuestions(req, res, next) {
   try {
     const { channel, course, lecture, topic } = req.query;
@@ -80,6 +120,19 @@ export async function searchQuestions(req, res, next) {
 // Add A Question
 export async function insertQuestions(req, res, next) {
   try {
+    // Check if the question already exists
+    const existingQuestion = await Questions.findOne({
+      question: req.body.question,
+      answers: req.body.answers,
+    });
+
+    if (existingQuestion) {
+      return res.status(409).json({
+        error: "This question AND this answers already exists.",
+      });
+    }
+
+    // Proceed with insertion if no duplicate is found
     const question = await Questions.create(req.body);
     formatResponse(res, 201, "Question added successfully", question);
   } catch (error) {
@@ -104,39 +157,54 @@ export async function deleteQuestions(req, res, next) {
 // Store Result
 export async function storeResults(req, res, next) {
   try {
-    const { username, result, attempts } = req.body;
+    const { username, result } = req.body;
+
+    // Check for existing attempts by this user in the last 20 minutes
+    const existingAttempts = await Results.find({
+      username,
+      createdAt: { $gte: new Date(Date.now() - 20 * 60 * 1000) }, // Last 20 minutes
+    });
+
+    if (existingAttempts.length >= 3) {
+      const oldestAttempt = existingAttempts[0];
+      const timeElapsed = Date.now() - oldestAttempt.createdAt.getTime();
+      const timeRemaining = Math.ceil((20 * 60 * 1000 - timeElapsed) / 60000);
+
+      return formatResponse(
+        res,
+        429,
+        `Too many attempts. Please wait ${timeRemaining} minutes before trying another quiz.`
+      );
+    }
+
     const userId = uuidv4();
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
     const hashedUserId = await bcrypt.hash(userId, saltRounds);
 
-    // Fetch all questions
-    const questions = await Questions.find().select("_id correctAnswerIndex");
+    // Fetch all questions for this quiz
+    const questions = await Questions.find({
+      _id: { $in: result.map((r) => r.questionId) },
+    }).select("_id correctAnswerIndex");
 
     if (questions.length !== result.length) {
       return formatResponse(
         res,
         400,
-        "Number of answers doesn't match number of questions"
+        "Number of answers doesn't match number of questions in this quiz"
       );
-    }
-
-    // Check if result already exists for this user
-    const existingResult = await Results.findOne({
-      username,
-      totalQuestions: questions.length,
-    });
-    if (existingResult) {
-      return formatResponse(res, 409, "Result for this user already exists.");
     }
 
     // Transform the result array and calculate passed questions
     let passedQuestions = 0;
-    const transformedResult = result.map((selectedAnswer, index) => {
-      const correct = selectedAnswer === questions[index].correctAnswerIndex;
+    const transformedResult = result.map((answer) => {
+      const question = questions.find(
+        (q) => q._id.toString() === answer.questionId
+      );
+      const correct = answer.selectedAnswer === question.correctAnswerIndex;
       if (correct) passedQuestions++;
       return {
-        questionId: questions[index]._id,
-        selectedAnswer,
+        questionId: question._id,
+        selectedAnswer: answer.selectedAnswer,
         correct,
       };
     });
@@ -155,7 +223,7 @@ export async function storeResults(req, res, next) {
       userId: hashedUserId,
       username,
       result: transformedResult,
-      attempts,
+      attempts: existingAttempts.length + 1,
       points,
       achieved,
       passedQuestions,
@@ -171,6 +239,7 @@ export async function storeResults(req, res, next) {
       totalQuestions: questions.length,
       percentageScore,
       achieved,
+      attemptsRemaining: 3 - (existingAttempts.length + 1),
     });
   } catch (error) {
     next(error);

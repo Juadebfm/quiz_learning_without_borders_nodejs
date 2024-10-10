@@ -11,9 +11,12 @@ router
 
 router.route("/questions/list").get(controller.listAllQuestions);
 
-router.route("/questions/:id").delete(controller.deleteQuestions);
-
 router.get("/questions/search", controller.searchQuestions);
+
+router
+  .route("/questions/:id")
+  .delete(controller.deleteQuestions)
+  .get(controller.getQuestionById);
 
 router
   .route("/result")

@@ -53,4 +53,6 @@ const resultSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+resultSchema.index({ username: 1, createdAt: -1 });
+
 export default mongoose.model("Result", resultSchema);

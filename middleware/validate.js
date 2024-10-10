@@ -7,14 +7,22 @@ const questionSchema = Joi.object({
     .length(4)
     .required(),
   correctAnswerIndex: Joi.number().integer().min(0).max(3).required(),
+  channel: Joi.string().trim().required(),
+  course: Joi.string().trim().required(),
+  lecture: Joi.string().trim().required(),
+  topic: Joi.string().trim().required(),
 });
 
 const resultSchema = Joi.object({
   username: Joi.string().required().trim(),
-  result: Joi.array().items(Joi.number().min(0).max(3)).required(),
-  attempts: Joi.number().integer().min(1).required(),
-  points: Joi.number().min(0).required(),
-  achieved: Joi.string().trim().required(),
+  result: Joi.array()
+    .items(
+      Joi.object({
+        questionId: Joi.string().required(),
+        selectedAnswer: Joi.number().integer().min(0).max(3).required(),
+      })
+    )
+    .required(),
 });
 
 export const validateQuestion = (req, res, next) => {
