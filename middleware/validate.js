@@ -9,8 +9,8 @@ const questionSchema = Joi.object({
   correctAnswerIndex: Joi.number().integer().min(0).max(3).required(),
   channel: Joi.string().trim().required(),
   course: Joi.string().trim().required(),
-  lecture: Joi.string().trim().required(),
   topic: Joi.string().trim().required(),
+  lessons: Joi.string().trim().required(),
 });
 
 const resultSchema = Joi.object({
@@ -23,6 +23,10 @@ const resultSchema = Joi.object({
       })
     )
     .required(),
+  channel: Joi.string().trim().required(),
+  course: Joi.string().trim().required(),
+  topic: Joi.string().trim().required(),
+  lessons: Joi.string().trim().required(),
 });
 
 export const validateQuestion = (req, res, next) => {

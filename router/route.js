@@ -13,11 +13,14 @@ router.route("/questions/list").get(controller.listAllQuestions);
 
 router.get("/questions/search", controller.searchQuestions);
 
+router.delete("/questions/all", controller.deleteAllQuestions);
+
 router
   .route("/questions/:id")
   .delete(controller.deleteQuestions)
   .get(controller.getQuestionById);
 
+router.route("/result/all").delete(controller.deleteAllResults);
 router
   .route("/result")
   .get(controller.getResults)

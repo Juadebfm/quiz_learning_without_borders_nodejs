@@ -38,12 +38,12 @@ const questionSchema = new Schema({
     required: [true, "Course is required"],
     trim: true,
   },
-  lecture: {
+  topic: {
     type: String,
     required: [true, "Lecture is required"],
     trim: true,
   },
-  topic: {
+  lessons: {
     type: String,
     required: [true, "Topic is required"],
     trim: true,
